@@ -7,6 +7,32 @@ import { CustomErrorReporter } from "../validations/CustomErrorReporter.js";
 vine.errorReporter = () => new CustomErrorReporter();
 
 export class CommentController {
+  static async getCommentsSocket(payload, callback) {
+    console.log(payload);
+    console.log(callback);
+  }
+  static async getComments(req, res) {
+    try {
+      const { postid } = req.params;
+      const comments = await prisma.comment.findMany({
+        where: { postId: Number(postid) },
+        include: {
+          author: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
+      return res.status(200).json({ comments });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
   static async createComment(req, res) {
     try {
       const { email } = req.user;
@@ -28,6 +54,13 @@ export class CommentController {
             authorId: Number(findUser.id),
             postId: Number(postId),
             content,
+          },
+          include: {
+            author: {
+              select: {
+                name: true,
+              },
+            },
           },
         });
         return res.status(201).json({
@@ -63,7 +96,7 @@ export class CommentController {
   static async deleteComment(req, res) {
     try {
       const { id: commentId } = req.params;
-      const { postId } = req.body;
+      const { postId } = req.query;
       const { id: userId } = req.user;
       const findPost = await prisma.post.findUnique({
         where: { id: Number(postId) },

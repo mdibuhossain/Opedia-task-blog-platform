@@ -1,7 +1,12 @@
-import { Inter } from "next/font/google";
+import { Lato } from "next/font/google";
+import { Navbar } from "./components/navbar/navbar";
 import "./globals.css";
+import AuthProvider from "./context/authProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "700", "900"],
+});
 
 export const metadata = {
   title: "Create Next App",
@@ -11,7 +16,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={lato.className}>
+        <AuthProvider>
+          <main className="w-full lg:w-8/12 md:w-9/12 m-auto">
+            <Navbar />
+            <div className="px-4">{children}</div>
+          </main>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

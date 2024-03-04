@@ -27,12 +27,10 @@ export class AuthController {
       // password encrypt
       const salt = bcrypt.genSaltSync(3);
       payload.password = bcrypt.hashSync(payload.password, salt);
-      const newUser = await prisma.user.create({
+      await prisma.user.create({
         data: payload,
       });
-      return res
-        .status(201)
-        .json({ message: "User registered successfully", user: newUser });
+      return res.status(201).json({ message: "Successfully registered." });
     } catch (error) {
       if (error instanceof errors.E_VALIDATION_ERROR) {
         return res.status(400).json({ errors: error.messages });
@@ -63,9 +61,11 @@ export class AuthController {
         const token = jwt.sign(payloadData, process.env.JWT_SECRET, {
           expiresIn: "7d",
         });
-        return res
-          .status(200)
-          .json({ message: "Logged in", access_token: `Bearer ${token}` });
+        res.cookie("jwt", token, {
+          httpOnly: true,
+          maxAge: 1000 * 60 * 60 * 24 * 7, // 7d
+        });
+        return res.status(200).json({ message: "Success" });
       }
       return res.status(404).json({ message: "Incorrect Credentials" });
     } catch (error) {
@@ -74,6 +74,17 @@ export class AuthController {
       } else {
         return res.status(500).json({ message: "Something went wrong" });
       }
+    }
+  }
+
+  static async logout(req, res) {
+    try {
+      res.cookie("jwt", "", {
+        maxAge: 1,
+      });
+      return res.status(200).json({ message: "Logout successfully" });
+    } catch (error) {
+      return res.status(500).json({ message: "Something went wrong" });
     }
   }
 }

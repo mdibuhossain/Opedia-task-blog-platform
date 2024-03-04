@@ -3,6 +3,7 @@ import prisma from "../DB/db.config.js";
 import { Utils } from "../utilities/utils.js";
 import { postSchema } from "../validations/authValidation.js";
 import { CustomErrorReporter } from "../validations/CustomErrorReporter.js";
+import uploadImage from "../utilities/uploadImage.js";
 
 vine.errorReporter = () => new CustomErrorReporter();
 
@@ -15,7 +16,10 @@ export class PostController {
       });
       if (findUser) {
         const validator = vine.compile(postSchema);
-        const payload = await validator.validate(req.body);
+        let payload = await validator.validate(req.body);
+        const image = req.files.image;
+        const imgURL = await uploadImage(image.path);
+        payload.bannerImg = imgURL;
         const newPost = await prisma.post.create({
           data: {
             ...payload,
@@ -36,9 +40,18 @@ export class PostController {
       let findPost = await prisma.post.findUnique({
         where: { id: Number(id) },
         include: {
-          comments: true,
+          comments: {
+            include: {
+              author: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
           author: {
             select: {
+              email: true,
               name: true,
               photo: true,
             },
@@ -57,7 +70,13 @@ export class PostController {
   }
   static async getPosts(req, res) {
     try {
+      let { page, limit } = req.query;
+      page = Number(page);
+      limit = Number(limit);
+      const totalPages = Math.ceil((await prisma.post.count()) / limit);
       const findPosts = await prisma.post.findMany({
+        take: limit,
+        skip: (page - 1) * limit,
         select: {
           id: true,
           title: true,
@@ -70,62 +89,11 @@ export class PostController {
             },
           },
         },
+        orderBy: {
+          id: "desc",
+        },
       });
-      return res.status(200).json({ posts: findPosts });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-  }
-  static async updatePost(req, res) {
-    try {
-      const { id } = req.params;
-      const { id: userId } = req.user;
-      const body = req.body;
-      const findPost = await prisma.post.findUnique({
-        where: { id: Number(id), authorId: Number(userId) },
-      });
-      if (findPost) {
-        let updatedPost = await prisma.post.update({
-          where: { id: Number(id), authorId: Number(userId) },
-          include: {
-            comments: true,
-            author: {
-              select: {
-                name: true,
-                photo: true,
-              },
-            },
-          },
-          data: {
-            ...body,
-          },
-        });
-        updatedPost = Utils.excludeFields(updatedPost, ["authorId"]);
-        return res
-          .status(200)
-          .json({ message: "Post successfully updated", post: updatedPost });
-      } else {
-        return res.status(404).json({ message: "Post not found" });
-      }
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-  }
-  static async deletePost(req, res) {
-    try {
-      const { id } = req.params;
-      const { id: userId } = req.user;
-      const findPost = await prisma.post.findUnique({
-        where: { id: Number(id), authorId: Number(userId) },
-      });
-      if (findPost) {
-        await prisma.post.delete({
-          where: { id: Number(id) },
-        });
-        return res.status(200).json({ message: "Post successfully deleted" });
-      } else {
-        return res.status(404).json({ message: "Post not found" });
-      }
+      return res.status(200).json({ posts: findPosts, totalPages });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }

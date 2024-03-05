@@ -26,7 +26,9 @@
 - Fill the environment variables. Variable name given in the `.env.example` file
 - run `yarn dev`
 
-  The client will be run on [localhost:5000](http://localhost:5000)
+  The server will be run on [localhost:5000](http://localhost:5000)
+  
+  and the API end-point [localhost:5000/api/](http://localhost:5000/api/)
 
 ## Technologies
 

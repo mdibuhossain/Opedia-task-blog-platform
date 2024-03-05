@@ -12,19 +12,19 @@
 
 - Need to install [PostgreSQL](https://www.postgresql.org/) into the system
 - `cd client`
-- `npm install`
-- Fill the environment variables
-- `npx prisma migrate dev`
-- `npm run dev`
+- run `npm install`
+- Fill the environment variables. Variable name given in the `.env.example` file
+- run `npx prisma migrate dev`
+- run `npm run dev`
 
   The client will be run on [localhost:3000](http://localhost:3000)
 
 ### Back-end
 
 - `cd server`
-- `yarn`
-- Fill the environment variables
-- `yarn dev`
+- run `yarn`
+- Fill the environment variables. Variable name given in the `.env.example` file
+- run `yarn dev`
 
   The client will be run on [localhost:5000](http://localhost:5000)
 

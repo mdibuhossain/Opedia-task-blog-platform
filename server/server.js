@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 5000;
 app.use("/api", apiRouter);
 
 app.get("/", (req, res) => {
-  return res.status(200).json({ message: "mara kha" });
+  return res.status(200).json({ message: "Opedia practical task" });
 });
 
 io.on("connection", (socket) => {

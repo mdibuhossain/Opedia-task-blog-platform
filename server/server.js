@@ -26,7 +26,7 @@ app.use(formData.format());
 app.use(formData.stream());
 app.use(formData.union());
 // TODO: remove comment after complete the project
-// app.use(limiter);
+app.use(limiter);
 dotenv.config();
 
 const httpServer = createServer(app);
